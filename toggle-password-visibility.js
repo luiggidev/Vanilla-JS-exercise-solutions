@@ -1,5 +1,3 @@
-<script>
-
 // Campo de senha e toggle check
 var password = Array.prototype.slice.call(document.querySelectorAll('[type="password"]'));
 
@@ -19,5 +17,3 @@ toggle.addEventListener('click', function (event) {
 	});
 
 }, false);
-
-</script>

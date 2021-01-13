@@ -1,6 +1,3 @@
-<div id="app">Checking the weather near you...</div>
-
-<script>
 
     var el = document.querySelector("#app");
     var post;
@@ -35,4 +32,3 @@ fetch('https://ipapi.co/json').then(function (response) {
 	console.warn(error);
 });
 
-</script>

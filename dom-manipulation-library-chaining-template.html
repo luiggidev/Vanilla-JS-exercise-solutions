@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>DOM Manipulation Library - Chaining</title>
+
+	<style type="text/css">
+		body {
+			margin: 1em auto;
+			max-width: 40em;
+			width: 88%;
+		}
+
+
+		.btn-blue {
+			background-color: #0088cc;
+			color: #ffffff;
+		}
+
+		.btn-purple {
+			background-color: rebeccapurple;
+			color: #ffffff;
+		}
+
+		.btn-pink {
+			background-color: pink;
+			color:black;
+		}
+	</style>
+</head>
+<body>
+
+	<h1>DOM Manipulation Library - Chaining</h1>
+
+	<p>All of the fun here happens in the console.</p>
+
+	<p>
+		<button class="btn-blue" id="button-1">Button 1</button>
+		<button class="btn-blue" id="button-2">Button 2</button>
+		<button class="btn-blue" id="button-3">Button 3</button>
+	</p>
+
+	<ul>
+		<li>Item 1</li>
+		<li>Item 2</li>
+		<li>Item 3</li>
+	</ul>
+
+	<script>
+		var $ = (function () {
+
+			'use strict';
+
+			/**
+			 * Create the constructor
+			 * @param {String} selector The selector to use
+			 */
+			var Constructor = function (selector) {
+				if (!selector) return;
+				if (selector === 'document') {
+					this.elems = [document];
+				} else if (selector === 'window') {
+					this.elems = [window];
+				} else {
+					this.elems = Array.prototype.slice.call(document.querySelectorAll(selector));
+				}
+			};
+
+			/**
+			 * Convert an array-like object into an array
+			 * @param  {*}     list An array-like object (ex. NodeList)
+			 * @return {Array}      An array
+			 */
+			Constructor.toArray = function (list) {
+				return Array.prototype.slice.call(list);
+			};
+
+			/**
+			 * Get the first item in a set of elements
+			 * @return {*} The first item
+			 */
+			Constructor.prototype.first = function () {
+				return this.elems[0];
+			};
+
+			/**
+			 * Get the last item in a set of elements
+			 * @return {*} The last item
+			 */
+			Constructor.prototype.last = function () {
+				return this.elems[this.elems.length - 1];
+			};
+
+			/**
+			 * Add a class to every item in a set of elements
+			 * @param {String} className The class to add
+			 */
+			Constructor.prototype.addClass = function (className) {
+				this.elems.forEach(function (elem) {
+					elem.classList.add(className);
+				});
+				return this;
+			};
+
+			/**
+			 * Remove a class to every item in a set of elements
+			 * @param {String} className The class to remove
+			 */
+			Constructor.prototype.removeClass = function (className) {
+				this.elems.forEach(function (elem) {
+					elem.classList.remove(className);
+				});
+				return this;
+			};
+
+			/**
+			 * Insert HTML after each item in a set of elements
+			 * @param {String} html  The HTML to insert
+			 */
+			Constructor.prototype.after = function (html) {
+				this.elems.forEach(function (elem) {
+
+					// Create a placeholder div
+					var div = document.createElement('div');
+
+					// Insert the HTML into the fragment
+					div.innerHTML = html;
+
+					// Insert the HTML into the DOM
+					Constructor.toArray(div.children).reverse().forEach(function (node) {
+						elem.after(node);
+					});
+
+				});
+			};
+
+			/**
+			 * Insert HTML after each item in a set of elements
+			 * @param {String} html  The HTML to insert
+			 */
+			Constructor.prototype.append = function (html) {
+				this.elems.forEach(function (elem) {
+
+					// Create a placeholder div
+					var div = document.createElement('div');
+
+					// Insert the HTML into the fragment
+					div.innerHTML = html;
+
+					// Append the HTML into the DOM
+					Constructor.toArray(div.children).forEach(function (node) {
+						elem.appendChild(node);
+					});
+
+				});
+			};
+
+			// Return the constructor object
+			return Constructor;
+
+		})();
+
+
+		// Create new instances
+		var btns = new $('button');
+		var list = new $('ul');
+
+		// $.first()
+		console.log('$.first()', btns.first());
+
+		// $.last()
+		console.log('$.last()', btns.last());
+
+		// $.addClass()
+		btns.addClass('btn-purple');
+
+		// $.after()
+		btns.after('<strong style="color: rebeccapurple">Hello, world!</strong>');
+
+		// $.append()
+		list.append('<li>Item A</li><li>Item B</li><li>Item C</li>');
+
+		new $('button').removeClass('btn-purple').removeClass('btn-blue').addClass('btn-pink');
+	</script>
+</body>
+</html>

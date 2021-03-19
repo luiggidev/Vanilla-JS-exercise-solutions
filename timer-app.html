@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Timer</title>
+
+	<style type="text/css">
+		body {
+			margin: 1em auto;
+			max-width: 40em;
+			text-align: center;
+			width: 88%;
+            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;    
+		}
+
+		#app {
+			font-size: 2em;
+		}
+
+		p {
+			margin-top: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+
+	<h1>Timer</h1>
+    <p><i>The two most powerful warriors are <br> patience and time</i></p>
+	<div id="app" aria-live="polite"></div>
+
+	<script>
+		//variables
+		var duration = 5;
+		var timer; 	// global variable timer for startTimer()
+
+
+		// Rue constructor
+		var Rue = function ( selector, options ) {
+			this.elem = document.querySelector(selector);
+			this.data = options.data;
+			this.template = options.template;
+		}
+
+		Rue.prototype.render = function(){
+			this.elem.innerHTML = this.template(this.data);
+		}
+
+		var stopTimer = function(){
+			if (app.data.time > 0) return;
+			clearInterval(timer); // Native JS function from setInterval
+		};
+
+		var startTimer = function(){
+			app.data.time = duration;
+			app.render();
+			// global variable timer
+			timer = setInterval(countDown, 1000);
+		};
+
+		var countDown = function(){
+			app.data.time--;
+			stopTimer();
+			app.render();
+		}
+
+		var clickHandler = function(event){
+			if(!event.target.hasAttribute('data-restart-timer')) return;
+			startTimer();
+		};
+
+		var app = new Rue('#app', {
+			data: {
+				time: duration
+			},
+			template: function (props) {
+
+				// If the timer is done, show a button to restart it
+				if (props.time < 1) {
+					return '<p><button data-restart-timer>Restart Timer</button></p>';
+				}
+
+				// Otherwise, show the current time
+				return props.time;
+
+			}
+		});
+
+		//Inits
+		startTimer();
+		document.addEventListener('click', clickHandler);
+	</script>
+</body>
+</html>

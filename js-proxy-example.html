@@ -1,0 +1,39 @@
+<head>
+  <body>
+      <h1>JS Proxy Objects</h1>
+      <u>
+          <li>Acts as a layer between operations on an object ( Traps )</li>
+          <li>Useful for validation and adding custom behavior</li>
+      </u>
+
+      <script>
+          const gameSettings = { date: '30/03/2021' };
+          const gameSettingsProxy = new Proxy( gameSettings, {
+              get: (o, property) => {
+                return property in o ? o[property] : 'dcode';
+              },
+
+              set: (o, property, value) =>{
+                  if (property === 'difficulty' && !['easy', 'medium', 'hard'].includes(value.toLowerCase())) {
+                      throw new Error('Difficulty is invalid');
+                  }
+                o[property] = value;
+              },
+
+              has: (o, property) => {
+                if( property === "difficulty"){
+                    return false;
+                }
+                return property in o;
+              }
+
+              
+          } );
+
+          gameSettingsProxy.difficulty ='easy';
+
+          console.log('difficulty' in gameSettingsProxy);
+
+      </script>
+  </body>
+</head>

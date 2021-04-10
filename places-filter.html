@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Explore - Filter</title>
+
+	<style type="text/css">
+		body {
+			margin: 1em auto;
+			max-width: 60em;
+			width: 88%;
+			background-color: #272727;
+			color: rgb(230, 230, 230);
+		}
+		a{
+			color: white;
+			 
+		}
+		/**
+		 * Layouts
+		 */
+
+		@media (min-width: 40em) {
+			.place:not([hidden]) {
+				display: grid;
+				grid-template-columns: 1fr 2fr;
+				grid-template-rows: 1fr;
+				grid-column-gap: 2em;
+			}
+		}
+
+		.place {
+			margin-bottom: 2em;
+		}
+
+
+		.place h2 {
+			margin: 0 0 0.5em;
+
+			padding: 0;
+		}
+
+		p {
+			margin: 0 0 1em;
+		}
+
+		img {
+			height: auto;
+			max-width: 100%;
+		}
+
+		.filters {
+			margin-bottom: 1em;
+		}
+
+
+		/**
+		 * Favorites and Visited
+		 */
+
+		button {
+			background-color: #f7f7f7;
+			border: 1px solid #e5e5e5;
+			color: #272727;
+			font-size: 1.5em;
+			margin-right: 0.25em;
+			padding: 0 0.5em;
+		}
+
+		[data-type="faves"][aria-pressed="true"] {
+			background-color: #de391f;
+			border-color: #de391f;
+			color: #ffffff;
+		}
+
+		[data-type="visited"][aria-pressed="true"] {
+			background-color: rgb(99, 136, 43);
+			border-color: #272727;
+			color: #ffffff;
+		}
+	</style>
+</head>
+<body>
+
+	<h1>Explore - Filter</h1>
+
+	<p>Explore cool, quirky places in your own backyard.</p>
+
+	<div class="filters">
+		<strong>Filter:</strong>
+		<label>
+			<input type="radio" name="view" value="all" checked>
+			All Places
+		</label>
+
+		<label>
+			<input type="radio" name="view" value="faves">
+			Favorites
+		</label>
+
+		<label>
+			<input type="radio" name="view" value="visited">
+			Visited
+		</label>
+
+		<label>
+			<input type="radio" name="view" value="not-visited">
+			Not Visited
+		</label>
+	</div>
+
+	<div id="app">Loading...</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/reefjs@7/dist/reef.js"></script>
+	<script>
+		//
+		// Variables
+		//
+
+		var favesID = 'exploreFaves';
+		var visitedID = 'exploreVisited';
+
+
+		//
+		// Methods
+		//
+
+		/**
+		 * Get items from localStorage
+		 * @param {String} id The localStorage ID
+		 * @return {Object}   The items from storage
+		 */
+		var getFromStorage = function (id) {
+			var saved = localStorage.getItem(id);
+			var savedObj = saved ? JSON.parse(saved) : {};
+			return savedObj;
+		};
+
+		/**
+		 * Save items to localStorage
+		 * @param  {Object} items Items to save
+		 * @param {String}  id    The localStorage ID
+		 */
+		var saveToStorage = function (items, id) {
+			localStorage.setItem(id, JSON.stringify(items));
+		};
+
+		/**
+		 * Get place data from the API and update the app state
+		 */
+		var getPlaces = function () {
+			fetch('https://vanillajsacademy.com/api/places.json').then(function (response) {
+				if (response.ok) {
+					return response.json();
+				}
+				return Promise.reject(response);
+			}).then(function (data) {
+				app.data.faves = getFromStorage(favesID);
+				app.data.visited = getFromStorage(visitedID);
+				app.data.filter = 'all';
+				app.data.places = data;
+			}).catch(function (err) {
+				console.warn(err);
+				app.data.places = null;
+			});
+		};
+
+		/**
+		 * Determine if a place should be visible or not based on filters
+		 * @param  {Object} place The place
+		 * @param  {Object} props The current app state
+		 * @return {String}       The hidden string
+		 */
+		var getHidden = function (place, props) {
+
+			// If filter is "not visited" and place has been visited, hide
+			if (props.filter === 'not-visited' && props.visited[place.id]) return 'hidden';
+
+			// If filter is "faves" or "visited" and place has not been favorited or visited, hide
+			if (props[props.filter] && !props[props.filter][place.id]) return 'hidden';
+
+			// Otherwise, show it
+			return '';
+
+		};
+
+		/**
+		 * Create HTML for each of the places from the app data
+		 * @param  {Object} props The app data
+		 * @return {String}       The HTML
+		 */
+		var getPlacesHTML = function (props) {
+			return props.places.map(function (place) {
+				var html =
+					'<div class="place" ' + getHidden(place, props) + '>' +
+						'<div>' +
+							'<img alt="" src="' + place.img + '">' +
+						'</div>' +
+						'<div>' +
+							'<h2>' + place.place + '</h2>' +
+							'<p>' + place.description + '</p>' +
+							'<p><em>' + place.location + '</em><br><a href="' + place.url + '">' + place.url + '</a></p>' +
+							'<p>' +
+								'<button data-type="faves" data-id="' + place.id + '" aria-label="Save ' + place.place + '" aria-pressed="' + props.faves[place.id] + '">&hearts;</button>' +
+								'<button data-type="visited" data-id="' + place.id + '" aria-label="Visited ' + place.place + '" aria-pressed="' + props.visited[place.id] + '">&#x2713;</button>' +
+							'</p>' +
+						'</div>' +
+					'</div>';
+				return html;
+			}).join('');
+		};
+
+		/**
+		 * Get the message to display if there's no place data
+		 * @return {String} The HTML
+		 */
+		var getNoPlacesHTML = function () {
+			return '<p><em>Unable to find any places right now. Please try again later. Sorry!</em></p>';
+		};
+
+		/**
+		 * The app component
+		 */
+		var app = new Reef('#app', {
+			data: {},
+			template: function (props) {
+
+				// If there are places, render them
+				if (props.places && props.places.length) {
+					return getPlacesHTML(props);
+				}
+
+				// Otherwise, show an error
+				return getNoPlacesHTML();
+
+			}
+		});
+
+		/**
+		 * Handle click events
+		 * @param  {Event} event The event object
+		 */
+		var clickHandler = function (event) {
+
+			// Get button details
+			var type = event.target.getAttribute('data-type');
+			var id = event.target.getAttribute('data-id');
+
+			// Only run on fave or visited buttons
+			if (!type || !id) return;
+
+			// If place is already set, remove it
+			// Otherwise, set it
+			app.data[type][id] = app.data[type][id] ? false : true;
+
+		};
+
+		/**
+		 * Handle change events
+		 * @param  {Event} event The event object
+		 */
+		var changeHandler = function (event) {
+
+			// Only run on .filters inputs
+			if (!event.target.closest('.filters')) return;
+
+			// Reactively update filter view
+			app.data.filter = event.target.value;
+
+		};
+
+		/**
+		 * Handle render events
+		 * @param  {Event} event The event object
+		 */
+		var renderHandler = function (event) {
+
+			// Save favorites and visited places to localStorage on render
+			saveToStorage(app.data.faves, favesID);
+			saveToStorage(app.data.visited, visitedID);
+
+		};
+
+
+		//
+		// Inits
+		//
+
+		getPlaces();
+		document.addEventListener('click', clickHandler);
+		document.addEventListener('change', changeHandler);
+		document.addEventListener('render', renderHandler);
+	</script>
+</body>
+</html>
